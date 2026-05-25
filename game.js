@@ -5,6 +5,8 @@ let status = 'playing';
 let maxAttempts = 5;
 let displayHistory = [];
 let revealOrder = [];
+let newlyRevealedIndex = null;
+let guesses = [];
 const todayStr = new Date().toISOString().split('T')[0];
 
 const initGame = async () => {
@@ -71,6 +73,7 @@ const initGame = async () => {
             if (savedState.date === todayStr && savedState.targetName === target.name) {
                 attempt = savedState.attempt;
                 status = savedState.status;
+                guesses = savedState.guesses || [];
             }
         } catch (e) {
             console.error('Failed to parse saved state');
@@ -177,8 +180,9 @@ const render = () => {
     const tbody = document.getElementById('career-body');
     tbody.innerHTML = displayHistory.map((club, idx) => {
         const isRevealed = revealedIndices.includes(idx) || status !== 'playing';
+        const isNewReveal = idx === newlyRevealedIndex;
         return `
-            <tr>
+            <tr ${isNewReveal ? 'class="highlight-reveal"' : ''}>
                 <td>${isRevealed ? club.years : '????–????'}</td>
                 <td>${isRevealed ? club.club : '[REDACTED]'}</td>
                 <td style="text-align: center;">${isRevealed ? club.apps : '—'}</td>
@@ -248,6 +252,9 @@ const render = () => {
             });
         };
     }
+    
+    // Reset after it is rendered once so that subsequent micro-renders don't trigger the animation again
+    newlyRevealedIndex = null;
 };
 
 const showAutocomplete = () => {
@@ -260,7 +267,10 @@ const showAutocomplete = () => {
         return;
     }
 
-    const filtered = players.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
+    const filtered = players.filter(p => 
+        p.name.toLowerCase().includes(val) &&
+        !guesses.some(g => g.toLowerCase() === p.name.toLowerCase())
+    ).slice(0, 5);
     if (filtered.length === 0) {
         autocompleteList.style.display = 'none';
         return;
@@ -282,10 +292,23 @@ const showAutocomplete = () => {
 document.getElementById('guess-input').addEventListener('input', (e) => {
     const val = e.target.value.trim().toLowerCase();
     const btn = document.getElementById('submit-guess-btn');
+    const messageArea = document.getElementById('message-area');
+    
     const isValidOption = players.some(p => p.name.toLowerCase() === val);
+    const hasAlreadyGuessed = guesses.some(g => g.toLowerCase() === val);
 
-    // Enable button only if the input is a valid player
-    btn.disabled = !isValidOption;
+    if (hasAlreadyGuessed) {
+        messageArea.style.display = 'block';
+        messageArea.className = 'message error';
+        messageArea.textContent = "You've already guessed this player!";
+        btn.disabled = true;
+    } else {
+        if (messageArea.textContent === "You've already guessed this player!") {
+            messageArea.style.display = 'none';
+            messageArea.textContent = '';
+        }
+        btn.disabled = !isValidOption;
+    }
     showAutocomplete();
 });
 
@@ -303,15 +326,22 @@ document.getElementById('guess-form').onsubmit = (e) => {
 
     // Validate guess against options (fallback)
     const isValidOption = players.some(p => p.name.toLowerCase() === val);
+    const hasAlreadyGuessed = guesses.some(g => g.toLowerCase() === val);
 
-    if (!isValidOption) {
+    if (!isValidOption || hasAlreadyGuessed) {
         return;
+    }
+
+    const matchedPlayer = players.find(p => p.name.toLowerCase() === val);
+    if (matchedPlayer) {
+        guesses.push(matchedPlayer.name);
     }
 
     if (val === target.name.toLowerCase()) {
         status = 'win';
     } else {
         attempt++;
+        newlyRevealedIndex = revealOrder.progression[attempt];
         if (attempt >= maxAttempts) {
             status = 'lost';
         }
@@ -328,12 +358,48 @@ document.getElementById('guess-form').onsubmit = (e) => {
         date: todayStr,
         targetName: target.name,
         attempt: attempt,
-        status: status
+        status: status,
+        guesses: guesses
     }));
 
     updateStats();
 
     // Automatically show stats overlay when game completes
+    if (status === 'win' || status === 'lost') {
+        setTimeout(() => {
+            document.getElementById('stats-overlay').classList.add('show');
+        }, 1200);
+    }
+
+    render();
+};
+
+document.getElementById('skip-btn').onclick = () => {
+    if (status !== 'playing') return;
+
+    attempt++;
+    newlyRevealedIndex = revealOrder.progression[attempt];
+    if (attempt >= maxAttempts) {
+        status = 'lost';
+    }
+
+    const input = document.getElementById('guess-input');
+    const btn = document.getElementById('submit-guess-btn');
+    input.value = '';
+    btn.disabled = true;
+    document.getElementById('autocomplete-list').style.display = 'none';
+
+    // Save state
+    localStorage.setItem('footbleState', JSON.stringify({
+        date: todayStr,
+        targetName: target.name,
+        attempt: attempt,
+        status: status,
+        guesses: guesses
+    }));
+
+    updateStats();
+
     if (status === 'win' || status === 'lost') {
         setTimeout(() => {
             document.getElementById('stats-overlay').classList.add('show');

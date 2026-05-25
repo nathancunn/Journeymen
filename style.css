@@ -40,9 +40,14 @@ body {
 .header-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   border-bottom: 1px solid var(--wiki-border);
   padding-bottom: 0.5rem;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
 }
 
 .logo-placeholder {
@@ -202,13 +207,7 @@ button:hover {
 }
 
 /* Header & Action Buttons */
-.header-container {
-  position: relative;
-}
-
 .header-actions {
-  position: absolute;
-  right: 0;
   display: flex;
   gap: 8px;
 }
@@ -391,4 +390,50 @@ button:hover {
   font-size: 0.75rem;
   color: #54595d;
   text-transform: uppercase;
+}
+
+/* Button layout inside input area */
+.button-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.button-group button {
+  flex: 1;
+}
+
+.skip-btn {
+  background-color: #f8f9fa;
+  border: 1px solid var(--wiki-border);
+  color: #54595d;
+  font-weight: bold;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.skip-btn:hover {
+  background-color: #eaecf0;
+  color: var(--wiki-text);
+}
+
+/* Cell/Row Illuminate Animation on Reveal */
+@keyframes illuminateHighlight {
+  0% {
+    background-color: rgba(250, 204, 21, 0.6); /* Soft bright gold/yellow color */
+    box-shadow: inset 0 0 12px rgba(250, 204, 21, 0.8);
+  }
+  30% {
+    background-color: rgba(250, 204, 21, 0.4);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.highlight-reveal td {
+  animation: illuminateHighlight 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }

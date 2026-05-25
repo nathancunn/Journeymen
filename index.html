@@ -11,8 +11,10 @@
 <body>
     <div id="app" class="game-container">
         <div class="header-container">
-            <div class="logo-placeholder"></div>
-            <h1 id="game-title">Journeymen</h1>
+            <div class="brand-container">
+                <div class="logo-placeholder"></div>
+                <h1 id="game-title">Journeymen</h1>
+            </div>
             <div class="header-actions">
                 <button id="help-btn" class="icon-btn" title="How to Play">❓</button>
                 <button id="stats-btn" class="icon-btn" title="Statistics">📊</button>
@@ -74,7 +76,10 @@
                                 required>
                             <ul id="autocomplete-list" class="autocomplete-items"></ul>
                         </div>
-                        <button type="submit" id="submit-guess-btn" disabled>Submit guess</button>
+                        <div class="button-group">
+                            <button type="submit" id="submit-guess-btn" disabled>Submit guess</button>
+                            <button type="button" id="skip-btn" class="skip-btn">Skip turn</button>
+                        </div>
                     </form>
                 </div>
 
