@@ -24,14 +24,14 @@ const initGame = async () => {
     }
     const dailyIndex = Math.abs(hash) % players.length;
     const random = players[dailyIndex];
-    
+
     // Filter out "Total" rows and empty clubs
-    const validHistory = random.history.filter(c => 
-        c.club && c.club.trim() !== '' && 
+    const validHistory = random.history.filter(c =>
+        c.club && c.club.trim() !== '' &&
         c.club.toLowerCase() !== 'total' &&
         c.years && c.years.toLowerCase() !== 'total'
     );
-    
+
     // Sort by year for display order
     displayHistory = [...validHistory].sort((a, b) => {
         const yearA = parseInt(a.years.replace('–', '-').split('-')[0]) || 0;
@@ -56,16 +56,13 @@ const initGame = async () => {
         free: freeReveals,
         progression: progressionClubs.sort((a, b) => a.apps - b.apps).map(item => item.index)
     };
-    
+
     // Set max attempts to the number of progression clubs
     maxAttempts = Math.max(1, revealOrder.progression.length);
 
     target = random;
-    
-    // Populate datalist
-    const datalist = document.getElementById('players-datalist');
-    datalist.innerHTML = players.map(p => `<option value="${p.name}">`).join('');
-    
+
+
     // Load saved state if any
     const savedStateStr = localStorage.getItem('footbleState');
     if (savedStateStr) {
@@ -79,8 +76,95 @@ const initGame = async () => {
             console.error('Failed to parse saved state');
         }
     }
-    
+
+    updateStats();
+    setupOverlays();
     render();
+};
+
+const updateStats = () => {
+    let stats = JSON.parse(localStorage.getItem('footbleStats')) || { played: 0, won: 0, recorded: {} };
+
+    // If user has made at least one attempt or game is finished, mark as played for today
+    if (attempt > 0 || status !== 'playing') {
+        if (!stats.recorded[todayStr]) {
+            stats.played++;
+            stats.recorded[todayStr] = { won: false, finished: false };
+        }
+
+        if (status === 'win' && !stats.recorded[todayStr].won) {
+            stats.recorded[todayStr].won = true;
+            stats.recorded[todayStr].finished = true;
+            stats.won++;
+        } else if (status === 'lost' && !stats.recorded[todayStr].finished) {
+            stats.recorded[todayStr].finished = true;
+        }
+
+        localStorage.setItem('footbleStats', JSON.stringify(stats));
+    }
+
+    const winrate = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+
+    // Update inline stats
+    document.getElementById('stat-played').textContent = stats.played;
+    document.getElementById('stat-won').textContent = stats.won;
+    document.getElementById('stat-winrate').textContent = `${winrate}%`;
+
+    // Update modal stats
+    document.getElementById('modal-stat-played').textContent = stats.played;
+    document.getElementById('modal-stat-won').textContent = stats.won;
+    document.getElementById('modal-stat-winrate').textContent = `${winrate}%`;
+};
+
+const setupOverlays = () => {
+    const helpOverlay = document.getElementById('help-overlay');
+    const statsOverlay = document.getElementById('stats-overlay');
+
+    // Check if first-time visit
+    const hasVisited = localStorage.getItem('footbleVisited');
+    if (!hasVisited) {
+        helpOverlay.classList.add('show');
+    }
+
+    // Help modal triggers
+    document.getElementById('help-btn').addEventListener('click', () => {
+        helpOverlay.classList.add('show');
+    });
+
+    document.getElementById('start-game-btn').addEventListener('click', () => {
+        helpOverlay.classList.remove('show');
+        localStorage.setItem('footbleVisited', 'true');
+    });
+
+    document.getElementById('close-help-btn').addEventListener('click', () => {
+        helpOverlay.classList.remove('show');
+        localStorage.setItem('footbleVisited', 'true');
+    });
+
+    // Stats modal triggers
+    document.getElementById('stats-btn').addEventListener('click', () => {
+        updateStats();
+        statsOverlay.classList.add('show');
+    });
+
+    document.getElementById('close-stats-btn').addEventListener('click', () => {
+        statsOverlay.classList.remove('show');
+    });
+
+    document.getElementById('close-stats-modal-btn').addEventListener('click', () => {
+        statsOverlay.classList.remove('show');
+    });
+
+    // Close overlay on background click
+    window.addEventListener('click', (e) => {
+        if (e.target === helpOverlay) {
+            helpOverlay.classList.remove('show');
+            localStorage.setItem('footbleVisited', 'true');
+        }
+        if (e.target === statsOverlay) {
+            statsOverlay.classList.remove('show');
+        }
+    });
 };
 
 const render = () => {
@@ -88,7 +172,7 @@ const render = () => {
         ...revealOrder.free,
         ...revealOrder.progression.slice(0, attempt + 1)
     ];
-    
+
     // Update Table
     const tbody = document.getElementById('career-body');
     tbody.innerHTML = displayHistory.map((club, idx) => {
@@ -129,20 +213,20 @@ const render = () => {
         inputArea.style.display = 'none';
         messageArea.style.display = 'block';
         messageArea.className = `message ${status === 'win' ? 'win' : 'error'}`;
-        
-        const resultMsg = status === 'win' 
-            ? `Correct! The player is ${target.name}.` 
+
+        const resultMsg = status === 'win'
+            ? `Correct! The player is ${target.name}.`
             : `Game over! The player was ${target.name}.`;
         const epochDate = new Date('2026-05-22T00:00:00');
         const currentDate = new Date(todayStr + 'T00:00:00');
         const dayNumber = Math.floor((currentDate - epochDate) / (1000 * 60 * 60 * 24)) + 1;
-            
+
         let shareText = '';
         if (status === 'win') {
             const score = attempt + 1;
-            shareText = `Footble #${dayNumber} [${score}/${maxAttempts}]\n${'❌'.repeat(attempt)}⚽`;
+            shareText = `Journeymen #${dayNumber} [${score}/${maxAttempts}]\n${'❌'.repeat(attempt)}⚽`;
         } else {
-            shareText = `Footble #${dayNumber} [X/${maxAttempts}]\n${'❌'.repeat(maxAttempts)}`;
+            shareText = `Journeymen #${dayNumber} [X/${maxAttempts}]\n${'❌'.repeat(maxAttempts)}`;
         }
 
         messageArea.innerHTML = `
@@ -152,7 +236,7 @@ const render = () => {
             </div>
             <p style="margin-top: 15px; font-size: 0.9em; color: #54595d;">Come back tomorrow for the next player!</p>
         `;
-        
+
         document.getElementById('share-btn').onclick = () => {
             navigator.clipboard.writeText(shareText).then(() => {
                 const btn = document.getElementById('share-btn');
@@ -166,13 +250,48 @@ const render = () => {
     }
 };
 
+const showAutocomplete = () => {
+    const input = document.getElementById('guess-input');
+    const autocompleteList = document.getElementById('autocomplete-list');
+    const val = input.value.trim().toLowerCase();
+
+    if (!val || status !== 'playing') {
+        autocompleteList.style.display = 'none';
+        return;
+    }
+
+    const filtered = players.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
+    if (filtered.length === 0) {
+        autocompleteList.style.display = 'none';
+        return;
+    }
+
+    autocompleteList.innerHTML = filtered.map(p => `<li>${p.name}</li>`).join('');
+    autocompleteList.style.display = 'block';
+
+    autocompleteList.querySelectorAll('li').forEach(li => {
+        li.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevent input blur from hiding list before click
+            input.value = li.textContent;
+            autocompleteList.style.display = 'none';
+            input.dispatchEvent(new Event('input')); // Re-trigger validation
+        });
+    });
+};
+
 document.getElementById('guess-input').addEventListener('input', (e) => {
     const val = e.target.value.trim().toLowerCase();
     const btn = document.getElementById('submit-guess-btn');
     const isValidOption = players.some(p => p.name.toLowerCase() === val);
-    
+
     // Enable button only if the input is a valid player
     btn.disabled = !isValidOption;
+    showAutocomplete();
+});
+
+document.getElementById('guess-input').addEventListener('focus', showAutocomplete);
+document.getElementById('guess-input').addEventListener('blur', () => {
+    document.getElementById('autocomplete-list').style.display = 'none';
 });
 
 document.getElementById('guess-form').onsubmit = (e) => {
@@ -181,14 +300,14 @@ document.getElementById('guess-form').onsubmit = (e) => {
     const val = input.value.trim().toLowerCase();
     const messageArea = document.getElementById('message-area');
     const btn = document.getElementById('submit-guess-btn');
-    
+
     // Validate guess against options (fallback)
     const isValidOption = players.some(p => p.name.toLowerCase() === val);
-    
+
     if (!isValidOption) {
         return;
     }
-    
+
     if (val === target.name.toLowerCase()) {
         status = 'win';
     } else {
@@ -197,12 +316,13 @@ document.getElementById('guess-form').onsubmit = (e) => {
             status = 'lost';
         }
     }
-    
+
     // Clear validation error if any
     messageArea.textContent = '';
     input.value = '';
     btn.disabled = true; // Disable button again until next valid input
-    
+    document.getElementById('autocomplete-list').style.display = 'none';
+
     // Save state
     localStorage.setItem('footbleState', JSON.stringify({
         date: todayStr,
@@ -210,6 +330,15 @@ document.getElementById('guess-form').onsubmit = (e) => {
         attempt: attempt,
         status: status
     }));
+
+    updateStats();
+
+    // Automatically show stats overlay when game completes
+    if (status === 'win' || status === 'lost') {
+        setTimeout(() => {
+            document.getElementById('stats-overlay').classList.add('show');
+        }, 1200);
+    }
 
     render();
 };

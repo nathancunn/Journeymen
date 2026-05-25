@@ -40,6 +40,7 @@ body {
 .header-container {
   display: flex;
   align-items: center;
+  justify-content: center;
   border-bottom: 1px solid var(--wiki-border);
   padding-bottom: 0.5rem;
 }
@@ -57,6 +58,39 @@ h1 {
   font-weight: normal;
   margin: 0;
   font-size: 1.8rem;
+}
+
+.autocomplete-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid var(--wiki-border);
+  border-top: none;
+  z-index: 99;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  display: none;
+}
+
+.autocomplete-items li {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.autocomplete-items li:hover {
+  background-color: var(--wiki-row-hover);
 }
 
 /* Wikipedia Career Table Style */
@@ -119,7 +153,8 @@ input {
   padding: 0.6rem;
   /* Slightly larger touch target */
   border: 1px solid var(--wiki-border);
-  flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 button {
@@ -164,4 +199,196 @@ button:hover {
   padding: 0;
   font-weight: normal;
   display: block;
+}
+
+/* Header & Action Buttons */
+.header-container {
+  position: relative;
+}
+
+.header-actions {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: var(--wiki-header-bg);
+}
+
+/* Running Tally / Stats Bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border: 1px solid var(--wiki-border);
+  border-radius: 4px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--wiki-text);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #54595d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Overlay & Modals */
+.overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-content {
+  background-color: var(--wiki-bg);
+  border: 1px solid var(--wiki-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  padding: 1.5rem;
+  position: relative;
+  box-sizing: border-box;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #54595d;
+}
+
+.close-btn:hover {
+  color: var(--wiki-text);
+}
+
+/* Instruction Steps inside Help Modal */
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.instruction-step p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.step-badge {
+  background-color: #3664ad;
+  color: white;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.primary-btn {
+  display: block;
+  width: 100%;
+  background-color: #3664ad;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+  background-color: #2a4f8a;
+}
+
+/* Statistics Grid in Modal */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.stat-box {
+  background-color: #f8f9fa;
+  border: 1px solid var(--wiki-border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.stat-num {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #3664ad;
+}
+
+.stat-desc {
+  font-size: 0.75rem;
+  color: #54595d;
+  text-transform: uppercase;
 }

@@ -1,54 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Footballer Guessing Game - Wikipedia</title>
+    <title>Journeymen - guess the Premier League journeymen</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="app" class="game-container">
         <div class="header-container">
             <div class="logo-placeholder"></div>
-            <h1 id="game-title">Footble</h1>
+            <h1 id="game-title">Journeymen</h1>
+            <div class="header-actions">
+                <button id="help-btn" class="icon-btn" title="How to Play">❓</button>
+                <button id="stats-btn" class="icon-btn" title="Statistics">📊</button>
+            </div>
         </div>
-        
+
+        <!-- Running Tally Bar -->
+        <div id="stats-bar" class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value" id="stat-played">0</span>
+                <span class="stat-label">Played</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-won">0</span>
+                <span class="stat-label">Won</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-winrate">0%</span>
+                <span class="stat-label">Win Rate</span>
+            </div>
+        </div>
+
         <div id="game-content">
+            <p>Guess the Premier League journeyman from their senior career stats</p>
             <h3>Senior career*</h3>
             <div class="table-responsive">
                 <table class="career-table">
+                    <!-- <caption>Senior Career*</caption>> -->
                     <thead>
-                    <tr>
-                        <th>Years</th>
-                        <th>Team</th>
-                        <th style="text-align: center;">Apps</th>
-                        <th style="text-align: center;">(Gls)</th>
-                    </tr>
-                </thead>
-                <tbody id="career-body">
-                    <!-- Rows will be injected by JS -->
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" style="font-size: 80%; color: #54595d; border: none;">
-                            * Senior club appearances and goals counted for the domestic league only.
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+                        <tr>
+                            <th>Years</th>
+                            <th>Team</th>
+                            <th style="text-align: center;">Apps</th>
+                            <th style="text-align: center;">(Gls)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="career-body">
+                        <!-- Rows will be injected by JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" style="font-size: 80%; color: #54595d; border: none;">
+                                * Senior club appearances and goals counted for the domestic league only.
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
 
             <div class="guess-section">
                 <div id="attempts-status" class="attempts-text">
                     <strong>Attempts used:</strong> 0 of 5
                 </div>
-                
+
                 <div id="input-area">
                     <form id="guess-form" class="guess-form">
-                        <input type="text" id="guess-input" list="players-datalist" placeholder="Enter player name..." required>
-                        <datalist id="players-datalist">
-                            <!-- Options will be injected by JS -->
-                        </datalist>
+                        <div class="autocomplete-container">
+                            <input type="text" id="guess-input" placeholder="Enter player name..." autocomplete="off"
+                                required>
+                            <ul id="autocomplete-list" class="autocomplete-items"></ul>
+                        </div>
                         <button type="submit" id="submit-guess-btn" disabled>Submit guess</button>
                     </form>
                 </div>
@@ -58,6 +83,62 @@
         </div>
     </div>
 
+    <!-- Help Overlay / Modal -->
+    <div id="help-overlay" class="overlay">
+        <div class="modal-content">
+            <button class="close-btn" id="close-help-btn">&times;</button>
+            <h2>How to Play Footble</h2>
+            <p>Guess the mystery football player based on their Wikipedia senior career infobox!</p>
+
+            <div class="instruction-step">
+                <span class="step-badge">1</span>
+                <p>The table starts with some clubs <strong>redacted</strong>. Only transfers/clubs with <strong>&lt; 10
+                        appearances</strong> are visible initially.</p>
+            </div>
+
+            <div class="instruction-step">
+                <span class="step-badge">2</span>
+                <p>Enter your guess in the box. Choose a valid player from the list.</p>
+            </div>
+
+            <div class="instruction-step">
+                <span class="step-badge">3</span>
+                <p>Each incorrect guess reveals the next club (ordered by fewest appearances to most appearances).</p>
+            </div>
+
+            <div class="instruction-step">
+                <span class="step-badge">4</span>
+                <p>Try to guess the player in as few attempts as possible!</p>
+            </div>
+
+            <button id="start-game-btn" class="primary-btn">Start Playing</button>
+        </div>
+    </div>
+
+    <!-- Stats Overlay / Modal -->
+    <div id="stats-overlay" class="overlay">
+        <div class="modal-content">
+            <button class="close-btn" id="close-stats-btn">&times;</button>
+            <h2>Your Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-num" id="modal-stat-played">0</div>
+                    <div class="stat-desc">Played</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="modal-stat-won">0</div>
+                    <div class="stat-desc">Won</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="modal-stat-winrate">0%</div>
+                    <div class="stat-desc">Win %</div>
+                </div>
+            </div>
+            <button id="close-stats-modal-btn" class="primary-btn">Back to Game</button>
+        </div>
+    </div>
+
     <script type="module" src="game.js"></script>
 </body>
+
 </html>
