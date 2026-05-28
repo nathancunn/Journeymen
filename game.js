@@ -122,6 +122,7 @@ const updateStats = () => {
 const setupOverlays = () => {
     const helpOverlay = document.getElementById('help-overlay');
     const statsOverlay = document.getElementById('stats-overlay');
+    const gameOverOverlay = document.getElementById('game-over-overlay');
 
     // Check if first-time visit
     const hasVisited = localStorage.getItem('footbleVisited');
@@ -158,6 +159,17 @@ const setupOverlays = () => {
         statsOverlay.classList.remove('show');
     });
 
+    // Game over modal triggers
+    document.getElementById('close-game-over-btn').addEventListener('click', () => {
+        gameOverOverlay.classList.remove('show');
+    });
+
+    document.getElementById('view-lifetime-stats-btn').addEventListener('click', () => {
+        gameOverOverlay.classList.remove('show');
+        updateStats();
+        statsOverlay.classList.add('show');
+    });
+
     // Close overlay on background click
     window.addEventListener('click', (e) => {
         if (e.target === helpOverlay) {
@@ -166,6 +178,9 @@ const setupOverlays = () => {
         }
         if (e.target === statsOverlay) {
             statsOverlay.classList.remove('show');
+        }
+        if (e.target === gameOverOverlay) {
+            gameOverOverlay.classList.remove('show');
         }
     });
 };
@@ -238,21 +253,33 @@ const render = () => {
             <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
                 <button id="share-btn" style="background: #10b981; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Share Results</button>
             </div>
-            <p style="margin-top: 15px; font-size: 0.9em; color: #54595d;">Come back tomorrow for the next player!</p>
+            <p style="margin-top: 15px; font-size: 0.9em; color: #54595d;">Come back tomorrow for the next journeyman!</p>
         `;
 
-        document.getElementById('share-btn').onclick = () => {
+        // Update Game Over Modal elements
+        document.getElementById('game-over-title').textContent = status === 'win' ? '🎉 Correct!' : '💔 Game Over';
+        document.getElementById('game-over-subtitle').textContent = status === 'win' ? 'You guessed the Journeyman:' : 'Today\'s Journeyman was:';
+        document.getElementById('solved-player-name').textContent = target.name;
+        document.getElementById('game-over-attempts').textContent = status === 'win'
+            ? `Guessed in ${attempt + 1} of ${maxAttempts} attempts`
+            : `Failed to guess in ${maxAttempts} attempts`;
+
+        const copyAction = (btnElementId) => {
             navigator.clipboard.writeText(shareText).then(() => {
-                const btn = document.getElementById('share-btn');
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = 'Share Results', 2000);
+                const btn = document.getElementById(btnElementId);
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied! 📋';
+                setTimeout(() => btn.textContent = originalText, 2000);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
                 alert("Failed to copy to clipboard");
             });
         };
+
+        document.getElementById('share-btn').onclick = () => copyAction('share-btn');
+        document.getElementById('modal-share-btn').onclick = () => copyAction('modal-share-btn');
     }
-    
+
     // Reset after it is rendered once so that subsequent micro-renders don't trigger the animation again
     newlyRevealedIndex = null;
 };
@@ -262,12 +289,13 @@ const showAutocomplete = () => {
     const autocompleteList = document.getElementById('autocomplete-list');
     const val = input.value.trim().toLowerCase();
 
-    if (!val || status !== 'playing') {
+    const isValidOption = players.some(p => p.name.toLowerCase() === val);
+    if (!val || status !== 'playing' || isValidOption) {
         autocompleteList.style.display = 'none';
         return;
     }
 
-    const filtered = players.filter(p => 
+    const filtered = players.filter(p =>
         p.name.toLowerCase().includes(val) &&
         !guesses.some(g => g.toLowerCase() === p.name.toLowerCase())
     ).slice(0, 5);
@@ -293,7 +321,7 @@ document.getElementById('guess-input').addEventListener('input', (e) => {
     const val = e.target.value.trim().toLowerCase();
     const btn = document.getElementById('submit-guess-btn');
     const messageArea = document.getElementById('message-area');
-    
+
     const isValidOption = players.some(p => p.name.toLowerCase() === val);
     const hasAlreadyGuessed = guesses.some(g => g.toLowerCase() === val);
 
@@ -364,10 +392,10 @@ document.getElementById('guess-form').onsubmit = (e) => {
 
     updateStats();
 
-    // Automatically show stats overlay when game completes
+    // Automatically show game over overlay when game completes
     if (status === 'win' || status === 'lost') {
         setTimeout(() => {
-            document.getElementById('stats-overlay').classList.add('show');
+            document.getElementById('game-over-overlay').classList.add('show');
         }, 1200);
     }
 
@@ -402,7 +430,7 @@ document.getElementById('skip-btn').onclick = () => {
 
     if (status === 'win' || status === 'lost') {
         setTimeout(() => {
-            document.getElementById('stats-overlay').classList.add('show');
+            document.getElementById('game-over-overlay').classList.add('show');
         }, 1200);
     }
 
