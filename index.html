@@ -86,7 +86,9 @@
                             <ul id="autocomplete-list" class="autocomplete-items"></ul>
                         </div>
                         <div class="button-group">
-                            <button type="submit" id="submit-guess-btn" disabled>Submit guess</button>
+                            <button type="submit" id="submit-guess-btn" disabled
+                                onclick="gtag('event', 'play_game');">Submit
+                                guess</button>
                             <button type="button" id="skip-btn" class="skip-btn">Skip turn</button>
                         </div>
                     </form>
