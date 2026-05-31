@@ -6,17 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journeymen - guess the Premier League journeymen</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-B3VGY5YVGP"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+    <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
 
-    gtag('config', 'G-B3VGY5YVGP');
+  // 2. Set default consent to 'denied' BEFORE loading GA4
+  gtag('consent', 'default', {
+    'analytics_storage': 'denied',
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied'
+  });
 </script>
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B3VGY5YVGP"></script>
+<script>
+  gtag('js', new Date());
+  gtag('config', 'G-B3VGY5YVGP');
+</script>
+    
+</head>
 <body>
     <div id="app" class="game-container">
         <div class="header-container">
@@ -173,6 +182,46 @@
     </div>
 
     <script type="module" src="game.js"></script>
+        <div id="cookie-banner" style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: #222; color: #fff; padding: 15px; display: none; justify-content: space-between; align-items: center; border-radius: 6px; z-index: 10000; font-family: sans-serif;">
+  <p style="margin: 0; font-size: 14px;">We use basic analytics to count visitor numbers. Is that okay?</p>
+  <div>
+    <button id="btn-reject" style="background: transparent; color: #fff; border: 1px solid #fff; padding: 6px 12px; margin-right: 8px; cursor: pointer; border-radius: 4px;">No thanks</button>
+    <button id="btn-accept" style="background: #007bff; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px;">Accept</button>
+  </div>
+        </div>
+        <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const banner = document.getElementById('cookie-banner');
+    const acceptBtn = document.getElementById('btn-accept');
+    const rejectBtn = document.getElementById('btn-reject');
+
+    // Check if the user has already made a choice
+    const consentChoice = localStorage.getItem('cookie-consent');
+
+    if (!consentChoice) {
+      // Show the banner if no choice exists
+      banner.style.display = 'flex';
+    } else if (consentChoice === 'granted') {
+      // If they previously accepted, update GA4 consent state
+      gtag('consent', 'update', { 'analytics_storage': 'granted' });
+    }
+
+    // User accepts
+    acceptBtn.addEventListener('click', function() {
+      localStorage.setItem('cookie-consent', 'granted');
+      gtag('consent', 'update', { 'analytics_storage': 'granted' });
+      banner.style.display = 'none';
+    });
+
+    // User rejects
+    rejectBtn.addEventListener('click', function() {
+      localStorage.setItem('cookie-consent', 'denied');
+      // Consent stays denied (the default we set in the head)
+      banner.style.display = 'none';
+    });
+  });
+        </script>
+        
 </body>
 
 </html>
